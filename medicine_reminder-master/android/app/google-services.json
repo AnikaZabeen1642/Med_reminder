@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1001050433932",
+    "project_id": "test-30e6a",
+    "storage_bucket": "test-30e6a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1001050433932:android:ea9b1e72156dc7f0b3cea9",
+        "android_client_info": {
+          "package_name": "com.example.med_reminder"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyATKtaKVRCltcLqTkVX2xffmNZa9BEPIdc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
