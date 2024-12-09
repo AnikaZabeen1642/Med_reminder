@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:med_reminder/screens/medicine.dart';
+import 'package:med_reminder/screens/doctordetails.dart';
 
 class HomePageWidget extends StatefulWidget {
   const HomePageWidget({super.key});
 
   @override
-  State<HomePageWidget> createState() => _SearchHomePageState();
+  State<HomePageWidget> createState() => _HomePageWidgetState();
 }
 
-class _SearchHomePageState extends State<HomePageWidget> {
+class _HomePageWidgetState extends State<HomePageWidget> {
   late TextEditingController _textController;
   late FocusNode _textFieldFocusNode;
 
@@ -22,6 +22,7 @@ class _SearchHomePageState extends State<HomePageWidget> {
     _textController = TextEditingController();
     _textFieldFocusNode = FocusNode();
 
+    // Add a listener to update the search query dynamically
     _textController.addListener(() {
       setState(() {
         searchQuery = _textController.text.trim().toLowerCase();
@@ -47,7 +48,7 @@ class _SearchHomePageState extends State<HomePageWidget> {
           backgroundColor: Colors.teal,
           elevation: 0,
           title: const Text(
-            'Search Medicines',
+            'Search Hospitals',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
@@ -62,7 +63,7 @@ class _SearchHomePageState extends State<HomePageWidget> {
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Material(
-                  elevation: 2,
+                  elevation: 4,
                   borderRadius: BorderRadius.circular(12),
                   child: TextFormField(
                     controller: _textController,
@@ -70,7 +71,7 @@ class _SearchHomePageState extends State<HomePageWidget> {
                     decoration: InputDecoration(
                       filled: true,
                       fillColor: Colors.white,
-                      hintText: 'Search by Brand or Manufacturer...',
+                      hintText: 'Search by location or hospital name...',
                       hintStyle: const TextStyle(fontSize: 16, color: Colors.grey),
                       prefixIcon: const Icon(Icons.search, color: Colors.grey),
                       enabledBorder: OutlineInputBorder(
@@ -89,7 +90,7 @@ class _SearchHomePageState extends State<HomePageWidget> {
               Expanded(
                 child: StreamBuilder<QuerySnapshot>(
                   stream: FirebaseFirestore.instance
-                      .collection('medicine_details')
+                      .collection('hospital_search')
                       .snapshots(),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
@@ -98,45 +99,46 @@ class _SearchHomePageState extends State<HomePageWidget> {
                       );
                     }
 
-                    final filteredMedicines = snapshot.data!.docs.where((doc) {
-                      final brandName = doc['brand name'].toString().toLowerCase();
-                      final manufacturer = doc['manufacturer'].toString().toLowerCase();
-                      return brandName.contains(searchQuery) ||
-                          manufacturer.contains(searchQuery);
+                    final filteredHospitals = snapshot.data!.docs.where((doc) {
+                      final hosName = doc['hos_name']?.toString().toLowerCase() ?? '';
+                      final location = doc['location']?.toString().toLowerCase() ?? '';
+                      return hosName.contains(searchQuery) ||
+                          location.contains(searchQuery);
                     }).toList();
 
-                    if (filteredMedicines.isEmpty) {
+                    if (filteredHospitals.isEmpty) {
                       return const Center(
                         child: Text(
-                          'No medicines found.',
+                          'No hospitals found.',
                           style: TextStyle(fontSize: 18, color: Colors.grey),
                         ),
                       );
                     }
 
                     return ListView.builder(
-                      itemCount: filteredMedicines.length,
+                      itemCount: filteredHospitals.length,
                       itemBuilder: (context, index) {
-                        final medicine = filteredMedicines[index];
-                        final brandName = medicine['brand name'] ?? "N/A";
-                        final manufacturer = medicine['manufacturer'] ?? "N/A";
-                        final brandId = medicine.id; // Get the document ID as brandId
+                        final hospital = filteredHospitals[index];
+                        final hosName = hospital['hos_name'] ?? "N/A";
+                        final location = hospital['location'] ?? "N/A";
 
                         return Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                           child: Material(
-                            elevation: 2,
+                            elevation: 3,
                             borderRadius: BorderRadius.circular(12),
                             child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 12),
                               tileColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
                               leading: CircleAvatar(
                                 backgroundColor: Colors.teal.withOpacity(0.1),
                                 child: const Icon(Icons.local_hospital, color: Colors.teal),
                               ),
                               title: Text(
-                                brandName,
+                                hosName,
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -144,7 +146,7 @@ class _SearchHomePageState extends State<HomePageWidget> {
                                 ),
                               ),
                               subtitle: Text(
-                                manufacturer,
+                                location,
                                 style: const TextStyle(
                                   fontSize: 14,
                                   color: Colors.grey,
@@ -159,15 +161,15 @@ class _SearchHomePageState extends State<HomePageWidget> {
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               onTap: () {
-                                debugPrint('Passing brand ID: $brandId');
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => MedicineWidget(
-                                      brandId: brandId, // Pass brandId instead of brandName
+                                    builder: (context) => ShowDoctorDetailsWidget(
+                                      location: location,
                                     ),
                                   ),
                                 );
+                                debugPrint('Navigating to ShowDoctorDetailsWidget with location: $location');
                               },
                             ),
                           ),

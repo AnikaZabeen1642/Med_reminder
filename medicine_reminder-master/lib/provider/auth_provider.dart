@@ -387,15 +387,19 @@ class AuthProvider extends ChangeNotifier {
         .doc(_firebaseAuth.currentUser!.uid)
         .get()
         .then((DocumentSnapshot snapshot) {
+      // Safely access the data and make sure the password is passed
       _userModel = UserModel(
         name: snapshot['name'],
         email: snapshot['email'],
         createdAt: snapshot['createdAt'],
         uid: snapshot['uid'],
+        password: snapshot['password'] ?? '', // Ensure password is retrieved
       );
-      _uid = userModel.uid;
+      _uid = _userModel?.uid ?? ''; // Use null-aware operator
     });
   }
+
+
 
   // STORING DATA LOCALLY
   Future saveUserDataToSP() async {

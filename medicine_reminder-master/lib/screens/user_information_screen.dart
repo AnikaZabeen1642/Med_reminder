@@ -1,4 +1,3 @@
-// will get the info from user here
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:med_reminder/models/user_model.dart';
@@ -11,105 +10,118 @@ import 'package:provider/provider.dart';
 import 'package:sizer/sizer.dart';
 
 class UserInformationScreen extends StatefulWidget {
-  const UserInformationScreen({super.key});
+  final String email; // Receive the email from the previous screen
+  final String password; // Receive the password from the previous screen
+
+  const UserInformationScreen({super.key, required this.email, required this.password});
 
   @override
   State<UserInformationScreen> createState() => _UserInformationScreenState();
 }
 
 class _UserInformationScreenState extends State<UserInformationScreen> {
-  File? image; //user avatar
-  final nameController = TextEditingController(); //for name
-  final emailController = TextEditingController(); //for email
+  File? image; // User avatar
+  final nameController = TextEditingController(); // For name
 
   @override
   void dispose() {
     super.dispose();
     nameController.dispose();
-    emailController.dispose();
   }
 
-
-
+  @override
   Widget build(BuildContext context) {
     final isLoading =
         Provider.of<AuthProvider>(context, listen: true).isLoading;
+
     return Scaffold(
       body: SafeArea(
         child: isLoading == true
             ? const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.green,
-                ),
-              )
+          child: CircularProgressIndicator(
+            color: Colors.green,
+          ),
+        )
             : SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 15.0, horizontal: 5.0),
-                child: Center(
+          padding:
+          const EdgeInsets.symmetric(vertical: 15.0, horizontal: 5.0),
+          child: Center(
+            child: Column(
+              children: [
+                SizedBox(height: 10.h),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Medi ",
+                      style: TextStyle(
+                          fontSize: 6.h, fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      "Reminder",
+                      style: GoogleFonts.abel(
+                          color: Colors.green,
+                          fontSize: 6.h,
+                          fontWeight: FontWeight.bold),
+                    )
+                  ],
+                ),
+                SizedBox(height: 8.h),
+
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 5, horizontal: 15),
+                  margin: const EdgeInsets.only(top: 20),
                   child: Column(
                     children: [
-                      SizedBox(height:10.h),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text("Medi ",style:TextStyle(fontSize:6.h,fontWeight: FontWeight.bold)),
-                          Text("Reminder",style:GoogleFonts.abel(color:Colors.green,fontSize:6.h,fontWeight: FontWeight.bold))
-                        ],
+                      // Name field
+                      textField(
+                        hintText: "John Smith",
+                        icon: Icons.account_circle,
+                        inputType: TextInputType.name,
+                        maxLines: 1,
+                        controller: nameController,
                       ),
-                      SizedBox(height:8.h),
 
-                      Container(
-                        width: MediaQuery.of(context).size.width,
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 5, horizontal: 15),
-                        margin: const EdgeInsets.only(top: 20),
-                        child: Column(
-                          children: [
-                            // name field
-                            textField(
-                              hintText: "John Smith",
-                              icon: Icons.account_circle,
-                              inputType: TextInputType.name,
-                              maxLines: 1,
-                              controller: nameController,
-                            ),
-
-                            // email
-                            textField(
-                              hintText: "Secondary Email",
-                              icon: Icons.email,
-                              inputType: TextInputType.emailAddress,
-                              maxLines: 1,
-                              controller: emailController,
-                            ),
-                          ],
-                        ),
+                      // Secondary email field (displaying the passed email)
+                      textField(
+                        hintText: widget.email, // Display the passed email
+                        icon: Icons.email,
+                        inputType: TextInputType.emailAddress,
+                        maxLines: 1,
+                        controller: TextEditingController(
+                            text: widget.email), // Make it non-editable
+                        enabled: false, // Disable editing
                       ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        height: 50,
-                        width: MediaQuery.of(context).size.width * 0.90,
-                        child: CustomButton(
-                          text: "Continue",
-                          onPressed: () =>
-                              storeData(), //store the data when user press this button
-                        ),
-                      )
                     ],
                   ),
                 ),
-              ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 50,
+                  width: MediaQuery.of(context).size.width * 0.90,
+                  child: CustomButton(
+                    text: "Continue",
+                    onPressed: () => storeData(), // Store the data when the user presses this button
+                  ),
+                )
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  // custom textField
+  // Custom textField
   Widget textField({
     required String hintText,
     required IconData icon,
     required TextInputType inputType,
     required int maxLines,
     required TextEditingController controller,
+    bool enabled = true, // By default, the field is enabled
   }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
@@ -118,6 +130,7 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
         controller: controller,
         keyboardType: inputType,
         maxLines: maxLines,
+        enabled: enabled,
         decoration: InputDecoration(
           prefixIcon: Container(
             margin: const EdgeInsets.all(8.0),
@@ -153,14 +166,19 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
     );
   }
 
-  // store user data to database
+  // Store user data to database
   void storeData() async {
     final ap = Provider.of<AuthProvider>(context, listen: false);
+
+    // Pass the password to the UserModel
     UserModel userModel = UserModel(
-        name: nameController.text.trim(),
-        email: emailController.text.trim(),
-        uid: "",
-        createdAt: "");
+      name: nameController.text.trim(),
+      email: widget.email, // Use the passed email
+      uid: "",
+      createdAt: "",
+      password: widget.password, // Pass the password to the model
+    );
+
     // Save the data to Firestore
     ap.saveUserDataToFirebase(
       context: context,
@@ -179,5 +197,4 @@ class _UserInformationScreenState extends State<UserInformationScreen> {
       },
     );
   }
-  }
-
+}
